@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP32 Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>ESP32 Sensor Data</h1>
+  <canvas id="dataChart" width="400" height="200"></canvas>
+
+  <script>
+    var ctx = document.getElementById('dataChart').getContext('2d');
+    var dataValues = [];
+    var labels = [];
+
+    // Initialize the chart
+    var dataChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Sensor Value',
+          data: dataValues,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
+          fill: false
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            display: true
+          },
+          y: {
+            display: true,
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    var connection = new WebSocket('ws://172.20.10.7:81/'); // Use your ESP32 IP address here
+
+    connection.onopen = function() {
+      console.log('Connected to ESP32 WebSocket');
+    };
+
+    connection.onerror = function(error) {
+      console.log('WebSocket Error: ' + error);
+    };
+
+    connection.onmessage = function(event) {
+      var sensorValue = event.data;
+
+      if (dataValues.length >= 500) {
+        dataValues.shift();
+        labels.shift();
+      }
+
+      dataValues.push(sensorValue);
+      labels.push('');
+
+      dataChart.update();
+    };
+  </script>
+</body>
+</html>
